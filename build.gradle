@@ -1,11 +1,11 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.0'
-    id 'io.spring.dependency-management' version '1.1.4'
+//    id 'org.springframework.boot' version '3.2.0'
+//    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 group = 'me.lkh'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 
 java {
     sourceCompatibility = '17'
@@ -16,8 +16,11 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.1.6'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis:3.1.6'
+//    compileOnly 'org.projectlombok:lombok:1.18.24'
+//    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.1.6'
 }
 
 tasks.named('test') {
