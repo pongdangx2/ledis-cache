@@ -2,7 +2,7 @@
 - `L`ee KyeongHoon이 만든 R`edis Cache` 라이브러리
 - Key, Value 를 get/set하는 부분을 라이브러리로 만들었습니다.
 - RedisTemplate과 함께 Look Aside Cache를 쉽게 만들 수 있는 방법을 제공합니다.
-- `{root-directory}/java/LedisCache/build/libs/LedisCache-0.0.1.jar`를 사용하면 됩니다.
+- `{root-directory}/build/libs/LedisCache-0.0.1.jar`를 사용하면 됩니다.
 
 ## Class Diagram
 
