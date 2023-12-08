@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Redis String value를 캐싱하는 모듈
@@ -87,8 +88,8 @@ public class ValueLedisCacheTemplate<K, V> {
             return Optional.empty();
         }
 
-        ValueOperations<String, String> stringValueOperations = redisTemplate.opsForValue();
-        Optional<String> optionalStringResult = Optional.ofNullable(stringValueOperations.get(stringKey));
+        ValueOperations<String, String> valueOperation = redisTemplate.opsForValue();
+        Optional<String> optionalStringResult = Optional.ofNullable(valueOperation.get(stringKey));
 
         // Cache miss
         if(optionalStringResult.isEmpty()){
@@ -103,19 +104,26 @@ public class ValueLedisCacheTemplate<K, V> {
     }
 
     /**
-     * Redis 캐시에 데이터 저장
+     * Redis 캐시에 데이터 저장하고 만료시간을 설정
      * @param key   저장할 key
      * @param value 저장할 value
      * @param toOrigin 원본 데이터 저장후 성공여부 반환
+     * @param timeOut 만료시킬 경과 시간
+     * @param timeUnit 만료시킬 시간의 단위
      * @return 캐시 저장소와 원본 저장소 모두에 데이터 저장 성공 여부
      * @see me.lkh.lediscache.core.domain.value.ToOrigin
      */
-    public boolean setValue(K key, V value, ToOrigin toOrigin){
+    public boolean setValue(K key, V value, ToOrigin toOrigin, long timeOut, TimeUnit timeUnit){
+
         if(toOrigin.saveToOrigin()) {
             ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
 
             try {
-                valueOperations.set(objectMapper.writeValueAsString(key), objectMapper.writeValueAsString(value));
+                if(timeOut == 0) {
+                    valueOperations.set(objectMapper.writeValueAsString(key), objectMapper.writeValueAsString(value));
+                } else {
+                    valueOperations.set(objectMapper.writeValueAsString(key), objectMapper.writeValueAsString(value), timeOut, timeUnit);
+                }
             } catch (JsonProcessingException jsonProcessingException) {
                 return false;
             }
@@ -124,6 +132,18 @@ public class ValueLedisCacheTemplate<K, V> {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Redis 캐시에 데이터 저장
+     * @param key   저장할 key
+     * @param value 저장할 value
+     * @param toOrigin 원본 데이터 저장후 성공여부 반환
+     * @return 캐시 저장소와 원본 저장소 모두에 데이터 저장 성공 여부
+     * @see me.lkh.lediscache.core.domain.value.ToOrigin
+     */
+    public boolean setValue(K key, V value, ToOrigin toOrigin){
+        return setValue(key, value, toOrigin, 0, null);
     }
 
     /**
@@ -175,8 +195,8 @@ public class ValueLedisCacheTemplate<K, V> {
         }
 
         // 2. redis multiGet
-        ValueOperations<String, String> stringValueOperations = redisTemplate.opsForValue();
-        List<String> values = stringValueOperations.multiGet(stringKeyList);
+        ValueOperations<String, String> valueOperation = redisTemplate.opsForValue();
+        List<String> values = valueOperation.multiGet(stringKeyList);
 
         // 3. 존재하는 것만 결과에 추가
         int len = keyList.size();
@@ -198,6 +218,19 @@ public class ValueLedisCacheTemplate<K, V> {
      * @throws JsonProcessingException
      */
     public void setValue(Map<K, V> data, ToOrigin toOrigin) throws JsonProcessingException {
+        setValue(data, toOrigin, 0, null);
+    }
+
+    /**
+     *
+     * multiSet을 이용해 여러개의 key,value 데이터를 캐시 및 원본 데이터에 저장하고 만료시간을 설정
+     * @param data 저장할 (key, value) Map
+     * @param toOrigin 원본 저장소에 데이터를 저장
+     * @param timeOut
+     * @param timeUnit
+     * @throws JsonProcessingException
+     */
+    public void setValue(Map<K, V> data, ToOrigin toOrigin, long timeOut, TimeUnit timeUnit) throws JsonProcessingException {
 
         if(toOrigin.saveToOrigin()){
             Map<String, String> stringMap = new HashMap<>();
@@ -205,8 +238,12 @@ public class ValueLedisCacheTemplate<K, V> {
                 stringMap.put(objectMapper.writeValueAsString(key), objectMapper.writeValueAsString(data.get(key)));
             }
 
-            ValueOperations<String, String> stringValueOperations = redisTemplate.opsForValue();
-            stringValueOperations.multiSet(stringMap);
+            ValueOperations<String, String> valueOperation = redisTemplate.opsForValue();
+            valueOperation.multiSet(stringMap);
+
+            if(timeOut != 0) {
+                stringMap.keySet().forEach(key -> valueOperation.getAndExpire(key, timeOut, timeUnit));
+            }
         }
 
     }
