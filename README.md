@@ -1,9 +1,25 @@
 # ledis-cache
 - `L`ee KyeongHoon이 만든 R`edis Cache` 라이브러리
 - Look Aside Cache를 구현할 때 공통적으로 사용되는 부분을 라이브러리로 만들었습니다.
-- RedisTemplate과 함께 Cache기능을 쉽게 구현할 수 있도록 합니다.
+- RedisTemplate으로 Cache기능을 쉽게 구현할 수 있도록 합니다.
 - 사용자는 `Key`와 `원본 Repository에서 데이터를 조회하는 기능`에만 집중할 수 있습니다.
-- `{root-directory}/build/libs/LedisCache-0.0.1.jar`를 사용하면 됩니다.
+- `{root-directory}/build/libs/LedisCache-0.0.2.jar`를 사용하면 됩니다.
+
+## 주요 사항
+- Manager class를 만들어서 불필요한 인스턴스 생성을 방지했습니다.
+- 사용할 RedisTemplate은 의존성을 주입받도록 하여 결합도를 낮추었습니다.
+- Redis Cache로부터 데이터를 조회하는 기능과 저장하는 기능을 추상화하여 사용자가 원하는대로 Custom 하여 사용할 수 있도록 했습니다.
+- 캐싱할 때 사용하는 key 와 value의 타입이 사용자마다 다를 수 있다는 점을 고민했습니다.
+> 1.Generic을 이용해 사용자가 원하는 타입을 사용할 수 있도록 했습니다.
+```java
+public class ValueLedisCacheTemplate<K, V> {
+//   중략 ... 
+}
+```
+> 2.어떤 타입이 들어와도 사용할 수 있도록 key, value를 Json으로 변환하였습니다.
+```java
+result = Optional.ofNullable(objectMapper.readValue(optionalStringResult.get(), valueClass));
+```
 
 ## Class Diagram
 
