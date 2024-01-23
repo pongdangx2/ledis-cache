@@ -5,6 +5,7 @@ package me.lkh.lediscache.core.domain.value;
  * @author lee-kh
  * @version 0.1
  */
+@FunctionalInterface
 public interface ToOrigin {
     /**
      * 원본 저장소에 데이터를 저장
