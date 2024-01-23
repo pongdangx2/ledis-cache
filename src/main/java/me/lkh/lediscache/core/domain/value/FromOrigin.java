@@ -7,6 +7,7 @@ import java.util.Optional;
  * @author lee-kh
  * @version 0.1
  */
+@FunctionalInterface
 public interface FromOrigin {
 
     /**

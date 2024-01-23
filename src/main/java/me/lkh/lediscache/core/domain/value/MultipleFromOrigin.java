@@ -8,6 +8,7 @@ import java.util.Set;
  * @author lee-kh
  * @version 0.1
  */
+@FunctionalInterface
 public interface MultipleFromOrigin {
 
     /**
